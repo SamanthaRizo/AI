@@ -121,3 +121,43 @@ def delete_noticia(id):
 if __name__ == '__main__':
     print("Iniciando API de Noticias Financieras en http://localhost:8000")
     app.run(host='0.0.0.0', port=8000, debug=True)
+
+
+## Configuración del entorno Docker + MySQL
+
+Crea un archivo docker-compose.yml en el mismo directorio con el siguiente contenido:
+
+version: '3.8'
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql-news-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: contrasena
+      MYSQL_DATABASE: testdb
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./mysql_data:/var/lib/mysql
+
+### Instalar dependencias
+
+pip3 install flask requests
+
+### Correr el programa
+
+python app.py
+
+Esto iniciará un contenedor con MySQL y creará la base testdb.
+
+Luego, ingresa al contenedor y crea la tabla:
+
+```CREATE TABLE Noticias (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    titulo VARCHAR(255),
+    resumen TEXT,
+    fecha_publicacion DATE,
+    empresa VARCHAR(100),
+    fuente VARCHAR(100)
+);```
