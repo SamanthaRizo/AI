@@ -145,19 +145,22 @@ services:
 
 ### Instalar dependencias
 
-```pip3 install flask requests
+```
+pip3 install flask requests
 ```
 
 ### Correr el programa
 
-```python app.py
+```
+python app.py
 ```
 
 Esto iniciará un contenedor con MySQL y creará la base testdb.
 
 Luego, ingresa al contenedor y crea la tabla:
 
-```CREATE TABLE Noticias (
+```
+CREATE TABLE Noticias (
     id INT AUTO_INCREMENT PRIMARY KEY,
     titulo VARCHAR(255),
     resumen TEXT,
@@ -174,13 +177,15 @@ Obtiene todas las noticias registradas en la base de datos.
 
 Ejemplo de uso:
 
-```curl -X GET http://localhost:8000/noticias
+```
+curl -X GET http://localhost:8000/noticias
 ```
 
 
 Respuesta esperada:
 
-```[
+```
+[
   {
     "id": 1,
     "titulo": "Microsoft presenta resultados récord",
@@ -196,13 +201,15 @@ Respuesta esperada:
 
 Consulta una noticia específica por su ID.
 
-```curl -X GET http://localhost:8000/noticias/1
+```
+curl -X GET http://localhost:8000/noticias/1
 ```
 
 
 Respuesta esperada:
 
-```{
+```
+{
   "id": 1,
   "titulo": "Microsoft presenta resultados récord",
   "resumen": "La compañía supera las expectativas del mercado...",
@@ -216,7 +223,8 @@ Respuesta esperada:
 
 Crea una nueva noticia.
 
-```curl -X POST http://localhost:8000/noticias \
+```
+curl -X POST http://localhost:8000/noticias \
 -H "Content-Type: application/json" \
 -d '{
   "titulo": "Apple lanza nuevo iPhone",
@@ -230,7 +238,8 @@ Crea una nueva noticia.
 
 Respuesta esperada:
 
-```{
+```
+{
   "message": "Noticia creada",
   "id": 5
 }
@@ -240,7 +249,8 @@ Respuesta esperada:
 
 Actualiza completamente una noticia existente.
 
-```curl -X PUT http://localhost:8000/noticias/5 \
+```
+curl -X PUT http://localhost:8000/noticias/5 \
 -H "Content-Type: application/json" \
 -d '{
   "titulo": "Apple lanza el iPhone 17",
@@ -254,7 +264,8 @@ Actualiza completamente una noticia existente.
 
 Respuesta esperada:
 
-```{
+```
+{
   "message": "Noticia actualizada"
 }
 ```
@@ -263,13 +274,15 @@ Respuesta esperada:
 
 Elimina una noticia del sistema.
 
-```curl -X DELETE http://localhost:8000/noticias/5
+```
+curl -X DELETE http://localhost:8000/noticias/5
 ```
 
 
 Respuesta esperada:
 
-```{
+```
+{
   "message": "Noticia eliminada"
 }
 ```
