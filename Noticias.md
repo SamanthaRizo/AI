@@ -120,14 +120,14 @@ def delete_noticia(id):
 
 if __name__ == '__main__':
     print("Iniciando API de Noticias Financieras en http://localhost:8000")
-    app.run(host='0.0.0.0', port=8000, debug=True)
+    app.run(host='0.0.0.0', port=8000, debug=True)```
 
 
 ## Configuración del entorno Docker + MySQL
 
 Crea un archivo docker-compose.yml en el mismo directorio con el siguiente contenido:
 
-version: '3.8'
+```version: '3.8'
 services:
   mysql:
     image: mysql:8.0
@@ -139,15 +139,15 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - ./mysql_data:/var/lib/mysql
+      - ./mysql_data:/var/lib/mysql```
 
 ### Instalar dependencias
 
-pip3 install flask requests
+```pip3 install flask requests```
 
 ### Correr el programa
 
-python app.py
+```python app.py```
 
 Esto iniciará un contenedor con MySQL y creará la base testdb.
 
@@ -161,3 +161,100 @@ Luego, ingresa al contenedor y crea la tabla:
     empresa VARCHAR(100),
     fuente VARCHAR(100)
 );```
+
+## Endpoints Disponibles
+### GET /noticias
+
+Obtiene todas las noticias registradas en la base de datos.
+
+Ejemplo de uso:
+
+```curl -X GET http://localhost:8000/noticias```
+
+
+Respuesta esperada:
+
+```[
+  {
+    "id": 1,
+    "titulo": "Microsoft presenta resultados récord",
+    "resumen": "La compañía supera las expectativas del mercado...",
+    "fecha_publicacion": "2025-10-30",
+    "empresa": "Microsoft",
+    "fuente": "Reuters"
+  }
+]```
+
+### GET /noticias/{id}
+
+Consulta una noticia específica por su ID.
+
+```curl -X GET http://localhost:8000/noticias/1```
+
+
+Respuesta esperada:
+
+```{
+  "id": 1,
+  "titulo": "Microsoft presenta resultados récord",
+  "resumen": "La compañía supera las expectativas del mercado...",
+  "fecha_publicacion": "2025-10-30",
+  "empresa": "Microsoft",
+  "fuente": "Reuters"
+}```
+
+### POST /noticias
+
+Crea una nueva noticia.
+
+```curl -X POST http://localhost:8000/noticias \
+-H "Content-Type: application/json" \
+-d '{
+  "titulo": "Apple lanza nuevo iPhone",
+  "resumen": "El nuevo modelo introduce mejoras de IA y batería.",
+  "fecha_publicacion": "2025-11-02",
+  "empresa": "Apple",
+  "fuente": "Bloomberg"
+}'```
+
+
+Respuesta esperada:
+
+```{
+  "message": "Noticia creada",
+  "id": 5
+}```
+
+### PUT /noticias/{id}
+
+Actualiza completamente una noticia existente.
+
+```curl -X PUT http://localhost:8000/noticias/5 \
+-H "Content-Type: application/json" \
+-d '{
+  "titulo": "Apple lanza el iPhone 17",
+  "resumen": "Ahora con chip A20 Bionic y mejoras en cámara.",
+  "fecha_publicacion": "2025-11-02",
+  "empresa": "Apple",
+  "fuente": "Bloomberg"
+}'```
+
+
+Respuesta esperada:
+
+```{
+  "message": "Noticia actualizada"
+}```
+
+### DELETE /noticias/{id}
+
+Elimina una noticia del sistema.
+
+```curl -X DELETE http://localhost:8000/noticias/5```
+
+
+Respuesta esperada:
+
+```{
+  "message": "Noticia eliminada"
+}```
