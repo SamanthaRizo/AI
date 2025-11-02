@@ -120,7 +120,7 @@ def delete_noticia(id):
 
 if __name__ == '__main__':
     print("Iniciando API de Noticias Financieras en http://localhost:8000")
-    app.run(host='0.0.0.0', port=8000, debug=True)```
+    app.run(host='0.0.0.0', port=8000, debug=True)´´´
 
 
 ## Configuración del entorno Docker + MySQL
