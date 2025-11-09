@@ -1,0 +1,478 @@
+# https://editor.swagger.io/
+openapi: 3.0.3
+info:
+  title: API de Noticias y Empresas Financieras
+  description: |
+    **Equipo 53**
+    - Samantha Rizo Franco (a01796848@tec.mx)
+    - Guillermo Herrera Acosta (a01400835@tec.mx)
+    - Mauro Ramírez Barrera (A01796360)
+
+    API RESTful para la gestión de **noticias** y **empresas** del S&P500.
+    Permite operaciones CRUD, filtrado avanzado, autenticación JWT y consultas cruzadas.
+
+  version: 1.3.0
+  contact:
+    name: Equipo 53
+    email: a01796848@tec.mx
+
+servers:
+  - url: https://api.noticias.finanzas/v1
+    description: Entorno de Producción
+  - url: http://localhost:8000/api/v1
+    description: Entorno de Desarrollo Local
+
+security:
+  - BearerAuth: []
+
+tags:
+  - name: Noticias
+    description: Operaciones CRUD y de búsqueda sobre noticias financieras
+  - name: Empresas
+    description: Operaciones CRUD y de análisis sobre empresas del S&P500
+  - name: Utilidades
+    description: Endpoints de estado, métricas y documentación
+
+paths:
+  ##########################
+  #        NOTICIAS        #
+  ##########################
+  /noticias:
+    get:
+      tags: [Noticias]
+      summary: Obtener lista de noticias
+      operationId: getNoticias
+      parameters:
+        - name: empresa
+          in: query
+          description: Filtrar por empresa relacionada
+          schema: { type: string }
+        - name: fuente
+          in: query
+          description: Filtrar por fuente (Reuters, Bloomberg, etc.)
+          schema: { type: string }
+        - $ref: '#/components/parameters/fecha_inicio'
+        - $ref: '#/components/parameters/fecha_fin'
+        - $ref: '#/components/parameters/limite'
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/page_size'
+      responses:
+        '200':
+          description: Lista de noticias obtenida correctamente
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Noticia' }
+
+  /noticias/top/{n}:
+    parameters:
+      - name: n
+        in: path
+        required: true
+        description: Número de noticias más recientes a devolver
+        schema:
+          type: integer
+          example: 10
+    get:
+      tags: [Noticias]
+      summary: Obtener las N noticias más recientes
+      operationId: getTopNoticias
+      responses:
+        '200':
+          description: Lista de las noticias más recientes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Noticia'
+
+  /noticias/ranking/fuente:
+    get:
+      tags: [Noticias]
+      summary: Obtener ranking de fuentes por cantidad de noticias publicadas
+      operationId: getRankingPorFuente
+      responses:
+        '200':
+          description: Ranking de fuentes con mayor número de publicaciones
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    fuente:
+                      type: string
+                      example: Bloomberg
+                    cantidad_noticias:
+                      type: integer
+                      example: 120
+                      
+    post:
+      tags: [Noticias]
+      summary: Crear una nueva noticia
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/NoticiaCreacion' }
+            example:
+              titulo: "Apple lanza nuevo iPhone"
+              resumen: "La compañía presenta su nuevo modelo con IA integrada."
+              fecha_publicacion: "2025-10-15"
+              empresa: "Apple"
+              fuente: "Bloomberg"
+      responses:
+        '201': { description: Noticia creada correctamente }
+        '400': { $ref: '#/components/responses/BadRequestError' }
+
+  /noticias/{noticiaId}:
+    parameters:
+      - name: noticiaId
+        in: path
+        required: true
+        schema: { type: integer }
+    get:
+      tags: [Noticias]
+      summary: Obtener una noticia por su ID
+      operationId: getNoticiaById
+      responses:
+        '200':
+          description: Detalles de la noticia
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Noticia' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+
+    put:
+      tags: [Noticias]
+      summary: Actualizar una noticia existente
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/NoticiaCreacion' }
+      responses:
+        '200': { description: Noticia actualizada exitosamente }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+
+    delete:
+      tags: [Noticias]
+      summary: Eliminar una noticia
+      security:
+        - BearerAuth: []
+      responses:
+        '204': { description: Noticia eliminada exitosamente }
+
+  /noticias/search:
+    get:
+      tags: [Noticias]
+      summary: Buscar noticias por palabras clave
+      parameters:
+        - name: q
+          in: query
+          required: true
+          description: Término de búsqueda
+          schema: { type: string }
+      responses:
+        '200':
+          description: Resultados de la búsqueda
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Noticia' }
+
+  
+  ##########################
+  #        EMPRESAS        #
+  ##########################
+  /empresas:
+    get:
+      tags: [Empresas]
+      summary: Listar todas las empresas registradas
+      operationId: getEmpresas
+      parameters:
+        - name: sector
+          in: query
+          description: Filtrar por sector (tecnología, salud, etc.)
+          schema: { type: string }
+        - name: pais
+          in: query
+          description: Filtrar por país de origen
+          schema: { type: string }
+      responses:
+        '200':
+          description: Lista de empresas obtenida correctamente
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Empresa' }
+
+    post:
+      tags: [Empresas]
+      summary: Registrar una nueva empresa
+      operationId: createEmpresa
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EmpresaCreacion' }
+      responses:
+        '201': { description: Empresa creada exitosamente }
+
+  /empresas/{ticker}:
+    parameters:
+      - name: ticker
+        in: path
+        description: Símbolo bursátil de la empresa
+        required: true
+        schema: { type: string }
+    get:
+      tags: [Empresas]
+      summary: Obtener detalles de una empresa por su ticker
+      operationId: getEmpresaByTicker
+      responses:
+        '200':
+          description: Información detallada de la empresa
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Empresa' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+
+    put:
+      tags: [Empresas]
+      summary: Actualizar los datos de una empresa
+      operationId: updateEmpresa
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EmpresaCreacion' }
+      responses:
+        '200': { description: Empresa actualizada exitosamente }
+
+    delete:
+      tags: [Empresas]
+      summary: Eliminar una empresa
+      operationId: deleteEmpresa
+      responses:
+        '204': { description: Empresa eliminada exitosamente }
+
+  /empresas/{ticker}/noticias:
+    parameters:
+      - name: ticker
+        in: path
+        description: Símbolo bursátil de la empresa
+        required: true
+        schema:
+          type: string
+    get:
+      tags: [Empresas]
+      summary: Obtener noticias asociadas a una empresa (por ticker)
+      operationId: getNoticiasDeEmpresa
+      responses:
+        '200':
+          description: Noticias relacionadas con la empresa especificada
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Noticia'
+
+
+  /empresas/ranking/marketcap:
+    get:
+      tags: [Empresas]
+      summary: Obtener ranking de empresas por capitalización de mercado
+      operationId: getRankingMarketCap
+      responses:
+        '200':
+          description: Ranking de empresas ordenadas por market cap
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/EmpresaRanking' }
+  /empresas/top/{n}:
+    get:
+      tags: [Empresas]
+      summary: Obtener las N empresas con mayor capitalización
+      parameters:
+        - name: n
+          in: path
+          required: true
+          schema: { type: integer, example: 10 }
+      responses:
+        '200':
+          description: Top de empresas
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/EmpresaRanking' }
+
+  ##########################
+  #        UTILIDADES      #
+  ##########################
+  /status:
+    get:
+      tags: [Utilidades]
+      summary: Verificar estado del servicio
+      responses:
+        '200':
+          description: API operativa
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: "OK" }
+                  version: { type: string, example: "1.3.0" }
+
+  /metrics:
+    get:
+      tags: [Utilidades]
+      summary: Métricas de rendimiento
+      responses:
+        '200':
+          description: Métricas del sistema
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  uptime: { type: string, example: "5h 32m" }
+                  requests_count: { type: integer, example: 1234 }
+                  avg_response_time_ms: { type: number, example: 120.4 }
+
+  /docs:
+    get:
+      tags: [Utilidades]
+      summary: Obtener documentación OpenAPI
+      responses:
+        '200':
+          description: Devuelve el archivo OpenAPI actual
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  mensaje: "Accede a /openapi.json para la especificación completa"
+
+##########################
+#       COMPONENTES      #
+##########################
+components:
+  parameters:
+    fecha_inicio:
+      name: fecha_inicio
+      in: query
+      schema: { type: string, format: date }
+    fecha_fin:
+      name: fecha_fin
+      in: query
+      schema: { type: string, format: date }
+    limite:
+      name: limite
+      in: query
+      schema: { type: integer, default: 100 }
+    page:
+      name: page
+      in: query
+      schema: { type: integer, default: 1 }
+    page_size:
+      name: page_size
+      in: query
+      schema: { type: integer, default: 50 }
+
+  schemas:
+    Noticia:
+      type: object
+      required: [id, titulo, resumen, fecha_publicacion, empresa, fuente]
+      properties:
+        id: { type: integer, example: 101 }
+        titulo: { type: string }
+        resumen: { type: string }
+        fecha_publicacion: { type: string, format: date }
+        empresa: { type: string }
+        fuente: { type: string }
+
+    NoticiaCreacion:
+      type: object
+      required: [titulo, resumen, fecha_publicacion, empresa, fuente]
+      properties:
+        titulo: { type: string }
+        resumen: { type: string }
+        fecha_publicacion: { type: string, format: date }
+        empresa: { type: string }
+        fuente: { type: string }
+
+    Empresa:
+      type: object
+      required: [ticker, nombre, sector, pais, capitalizacion_mercado]
+      properties:
+        ticker: { type: string }
+        nombre: { type: string }
+        sector: { type: string }
+        pais: { type: string }
+        capitalizacion_mercado: { type: number }
+        precio_actual: { type: number }
+        variacion_diaria: { type: number }
+
+    EmpresaCreacion:
+      allOf:
+        - $ref: '#/components/schemas/Empresa'
+
+    EmpresaRanking:
+      type: object
+      properties:
+        posicion: { type: integer }
+        ticker: { type: string }
+        nombre: { type: string }
+        capitalizacion_mercado: { type: number }
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  responses:
+    NotFoundError:
+      description: Recurso no encontrado
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              codigo: { type: string, example: NOT_FOUND }
+              mensaje: { type: string, example: No se encontró el recurso solicitado. }
+
+    BadRequestError:
+      description: Solicitud incorrecta
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              codigo: { type: string, example: BAD_REQUEST }
+              mensaje: { type: string, example: La solicitud contiene parámetros inválidos. }
+
+    DefaultError:
+      description: Error interno del servidor
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              codigo: { type: string, example: INTERNAL_ERROR }
+              mensaje: { type: string, example: Error inesperado del servidor. }
